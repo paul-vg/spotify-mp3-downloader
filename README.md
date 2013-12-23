@@ -10,9 +10,9 @@ This is a node.js program that is controlled by a web interface. It downloads .m
 1. Install Node.js http://nodejs.org/
 2. Install id3lib
   1. OS X
-`brew install id3lib`
+```brew install id3lib```
 
-  2 Other
+  2. Other
 http://sourceforge.net/projects/id3lib/files/
 
 3. Run `node app.js`
