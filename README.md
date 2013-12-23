@@ -21,10 +21,10 @@ This will open your browser (at least on Mac OS X). Otherwise, navigate to [http
 4. Drag spotify tracks from the Spotify desktop client to the website
 
 # Screenshots
-http://i.imgur.com/4jSZ7HX.png
-http://i.imgur.com/z976IIY.png
-http://i.imgur.com/xGZPkIV.png
-http://i.imgur.com/7uSE4ns.png
+![](http://i.imgur.com/4jSZ7HX.png)
+![](http://i.imgur.com/z976IIY.png)
+![](http://i.imgur.com/xGZPkIV.png)
+![](http://i.imgur.com/7uSE4ns.png)
 
 
 # Legal etc.
