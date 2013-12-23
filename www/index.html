@@ -16,7 +16,7 @@
 		}
 		
 		body {
-			background: #333 url(https://d2c87l0yth4zbw.cloudfront.net/i/home/lifestyle-hero.jpg) no-repeat;
+			background: #333 url(https://d2c87l0yth4zbw.cloudfront.net/i/home/lifestyle-hero.jpg) no-repeat fixed;
 			background-size: cover;
 			text-align: center;
 			font-family: Helvetica;
@@ -214,8 +214,13 @@
 		});
 		
 		socket.on('done', function(result){
+		
+			var filename = result.filepath.split('/');
+				filename = '<span style="opacity:0.6">' + filename[ filename.length - 3 ] + '/</span><span style="opacity:0.8">' + filename[ filename.length - 2 ] + '/</span><span style="opacity:1">' + filename[ filename.length -1 ] + '</span>';
+		
 			document.getElementById(result.id).className = 'done';
-			document.getElementById(result.id).innerHTML = result.filepath;
+			document.getElementById(result.id).innerHTML = filename;
+			document.getElementById(result.id).title = result.filepath;
 		});
 		
 		socket.on('busy', function(result){
@@ -224,6 +229,8 @@
 		
 		socket.on('error', function(result){
 			document.getElementById(result.id).className = 'error';
+			document.getElementById(result.id).title = document.getElementById(result.id).innerHTML;
+			document.getElementById(result.id).innerHTML = result.err;
 		});
 
 		document.addEventListener('dragenter', function(e){
@@ -240,7 +247,7 @@
 		document.addEventListener('drop', function(e){
 			e.preventDefault();
 			
-			var html = parseTracks( e.dataTransfer.getData("Text") );
+			var html = parseTracks( e.dataTransfer.getData("Text").trim() );
 			document.getElementById('tracks').innerHTML = html;
 			
 			document.getElementById('go').style.display = 'inline-block';
@@ -295,15 +302,19 @@
 			buffer = [];
 			for( var i = 0; i < tracks.length; i++ ) {
 			
-				var id = tracks[i].split('/');
+				var track = tracks[i];
+					track = track.replace("\r", "");
+					
+				if( track.indexOf('spotify') < 0 ) continue;
+					
+				var id = track.split('/');
 					id = id[ id.length-1 ];				
 			
 				buffer.push({
-					title: tracks[i],
+					title: track,
 					id: id
 				});
 			}
-				console.log(buffer);
 			
 			var result = '';
 			

@@ -4,17 +4,38 @@ var config = {
 	port:		1717
 }
 
+process.on('uncaughtException', function (err) {
+	if( err.toString().indexOf('Track is not playable in country') > -1 ) { // skip track
+	
+		console.log(err.toString() + ': ' + current_track);
+	
+		socket.emit('error', {
+			id: current_track,
+			err: err.toString()
+		});
+	
+		tracks_done.push( current_track );
+		waitForSpotify();
+	} else if( err.code == 8 ) { // Rate limited
+		waitForSpotify();
+	}
+});
+
+var modules_folder = __dirname + '/node_modules.' + require('os').platform() + '.' + require('os').arch() + '/';
+
 var fs = require('fs');
-var async = require('async');
-var express = require('express')
+var async = require(modules_folder + 'async');
+var express = require(modules_folder + 'express')
 var app = express();
 var server = require('http').createServer(app);
-var io = require('socket.io').listen(server, { log: false });
+var io = require(modules_folder + 'socket.io').listen(server, { log: false });
+var spotify_web = require(modules_folder + 'spotify-web');
 var socket = socket;
+var current_track = {};
 var tracks = [];
 var tracks_done = [];
 
-global.waitForSpotify = function(){
+var waitForSpotify = function(){
 	console.log('waitForSpotify');
 	
 	// remove tracks already done
@@ -26,20 +47,24 @@ global.waitForSpotify = function(){
 		}
 	}
 		
-	console.log('Waiting 5s...');
+	console.log('Waiting 1s...');
 	setTimeout(function(){
 		console.log('Trying again!');
 		downloadTracks( tracks );
 	}, 1000);
 }
 
-app.use( '/', express.static('./www/') );
+app.use( '/', express.static( __dirname + '/www/') );
 
 server.listen(config.port);
 
-//console.log('Server running, to use, open http://localhost:' + config.port + ' in your browser.');
+console.log('Server running, to use, open http://localhost:' + config.port + ' in your browser.');
 
-require('child_process').exec('open "http://localhost:' + config.port + '"');
+if( require('os').platform() == 'win32' ) {
+	require('child_process').exec('start http://localhost:' + config.port + '');
+} else {
+	require('child_process').exec('open "http://localhost:' + config.port + '"');
+}
 
 io.sockets.on('connection', function (socket_) {
 	socket = socket_;
@@ -49,11 +74,14 @@ io.sockets.on('connection', function (socket_) {
 	}
 	
 	socket.on('go', function (result) {
+		current_track = {};
+		tracks = [];
+		tracks_done = [];
 		downloadTracks( result.tracks );		
 	});
 	socket.on('login', function (result, callback) {
 		
-		require('spotify-web').login(result.username, result.password, function(err, spotify) {
+		spotify_web.login(result.username, result.password, function(err, spotify) {
 			if( typeof spotify != 'undefined' ) {
 				config.username = result.username;
 				config.password = result.password;			
@@ -84,12 +112,14 @@ var downloadTrack = function( uri, callback ){
 	// generate id
 	var id = uri.split(':');
 		id = id[ id.length-1 ];	
-			
+	
+	current_track = id;
+	
 	socket.emit('busy', {
 		id: id
 	});
 	
-	require('spotify-web').login(config.username, config.password, function (err, spotify) {
+	spotify_web.login(config.username, config.password, function (err, spotify) {
 	
 		// first get a "Track" instance from the track URI
 		spotify.get(uri, function (err, track) {
@@ -106,9 +136,17 @@ var downloadTrack = function( uri, callback ){
 				artists.push(track.artist[i].name);
 			}
 			artists = artists.join(' / ');
-	
+			
+			// generate the artist path
+			var artistpath = __dirname + '/mp3/' + track.artist[0].name.replace(/\//g, ' - ') + '/';
+							
+			// generate folder if it does not exist
+			if( !fs.existsSync(artistpath) ) {
+				fs.mkdir( artistpath );
+			}
+			
 			// generate the albumpath
-			var albumpath = './mp3/' + track.artist[0].name.replace(/\//g, ' - ') + ' - ' + track.album.name.replace(/\//g, ' - ') + ' [' + track.album.date.year + ']/';
+			var albumpath = artistpath + track.album.name.replace(/\//g, ' - ') + ' [' + track.album.date.year + ']/';
 							
 			// generate folder if it does not exist
 			if( !fs.existsSync(albumpath) ) {
@@ -127,7 +165,12 @@ var downloadTrack = function( uri, callback ){
 				console.log('Downloaded: %s - %s', track.artist[0].name, track.name);
 				//spotify.disconnect();
 				
-				require('child_process').exec('id3tag --artist="' + artists + '" --album="' + track.album.name + '" --song="' + track.name + '" --year="' + track.album.date.year + '" --track="' + track.number + '" --comment="Track downloaded from Spotify: ' + uri + '" "' + filepath + '"');
+				// tag the file
+				if( require('os').platform() == 'win32' ) {
+					require('child_process').exec( __dirname + '/bin/id3tag.exe -a "' + artists + '" -l "' + track.album.name + '" -t "' + track.name + '" -y "' + track.album.date.year + '" -n "' + track.number + '" -c "Track downloaded from Spotify: ' + uri + '" "' + filepath + '"');
+				} else {			
+					require('child_process').exec('id3tag --artist="' + artists + '" --album="' + track.album.name + '" --song="' + track.name + '" --year="' + track.album.date.year + '" --track="' + track.number + '" --comment="Track downloaded from Spotify: ' + uri + '" "' + filepath + '"');
+				}
 				console.log('ID3\'d: %s - %s', track.artist[0].name, track.name);
 				
 				socket.emit('done', {
