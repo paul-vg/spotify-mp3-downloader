@@ -20,6 +20,14 @@ This will open your browser (at least on Mac OS X). Otherwise, navigate to [http
 
 4. Drag spotify tracks from the Spotify desktop client to the website
 
+You might not be able to run it due to different dependencies, in that case, remove the node_modules folder and run the following:
+
+```
+npm install 
+npm install 
+npm install 
+npm install 
+
 # Screenshots
 ![](http://i.imgur.com/4jSZ7HX.png)
 ![](http://i.imgur.com/z976IIY.png)
