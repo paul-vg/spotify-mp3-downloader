@@ -23,10 +23,11 @@ This will open your browser (at least on Mac OS X). Otherwise, navigate to [http
 You might not be able to run it due to different dependencies, in that case, remove the node_modules folder and run the following:
 
 ```
-npm install 
-npm install 
-npm install 
-npm install 
+npm install async
+npm install express
+npm install socket.io
+npm install spotify-web
+```
 
 # Screenshots
 ![](http://i.imgur.com/4jSZ7HX.png)
@@ -37,3 +38,6 @@ npm install
 
 # Legal etc.
 Spotify prohibits downloading music from their service, so using this tool is not really allowed and you might risk ending up with a suspended account. I am not resposible for any of that :)
+
+# Credits
+Many credits go to TooTallNate for developing [https://github.com/TooTallNate/node-spotify-web]
