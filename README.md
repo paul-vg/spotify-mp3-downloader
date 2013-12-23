@@ -26,7 +26,6 @@ You might not be able to run it due to different dependencies, in that case, rem
 npm install async
 npm install express
 npm install socket.io
-npm install spotify-web
 ```
 
 # Screenshots
