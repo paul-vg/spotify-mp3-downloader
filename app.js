@@ -24,12 +24,12 @@ process.on('uncaughtException', function (err) {
 var modules_folder = __dirname + '/node_modules.' + require('os').platform() + '.' + require('os').arch() + '/';
 
 var fs = require('fs');
-var async = require(modules_folder + 'async');
-var express = require(modules_folder + 'express')
+var async = require('async');
+var express = require('express')
 var app = express();
 var server = require('http').createServer(app);
-var io = require(modules_folder + 'socket.io').listen(server, { log: false });
-var spotify_web = require(modules_folder + 'spotify-web');
+var io = require('socket.io').listen(server, { log: false });
+var spotify_web = require('spotify-web');
 var socket = socket;
 var current_track = {};
 var tracks = [];
@@ -60,9 +60,7 @@ server.listen(config.port);
 
 console.log('Server running, to use, open http://localhost:' + config.port + ' in your browser.');
 
-if( require('os').platform() == 'win32' ) {
-	require('child_process').exec('start http://localhost:' + config.port + '');
-} else {
+if( false && require('os').platform() != 'win32' ) {
 	require('child_process').exec('open "http://localhost:' + config.port + '"');
 }
 
@@ -166,10 +164,8 @@ var downloadTrack = function( uri, callback ){
 				//spotify.disconnect();
 				
 				// tag the file
-				if( require('os').platform() == 'win32' ) {
-					require('child_process').exec( __dirname + '/bin/id3tag.exe -a "' + artists + '" -l "' + track.album.name + '" -t "' + track.name + '" -y "' + track.album.date.year + '" -n "' + track.number + '" -c "Track downloaded from Spotify: ' + uri + '" "' + filepath + '"');
-				} else {			
-					require('child_process').exec('id3tag --artist="' + artists + '" --album="' + track.album.name + '" --song="' + track.name + '" --year="' + track.album.date.year + '" --track="' + track.number + '" --comment="Track downloaded from Spotify: ' + uri + '" "' + filepath + '"');
+				if( true ) {
+					require('child_process').exec('id3tag -2 --artist="' + artists + '" --album="' + track.album.name + '" --song="' + track.name + '" --year="' + track.album.date.year + '" --track="' + track.number + '" --comment="Track downloaded from Spotify: ' + uri + '" "' + filepath + '"');
 				}
 				console.log('ID3\'d: %s - %s', track.artist[0].name, track.name);
 				
