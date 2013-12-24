@@ -147,10 +147,12 @@ var downloadTrack = function( uri, callback ){
 			var albumpath = artistpath + track.album.name.replace(/\//g, ' - ') + ' [' + track.album.date.year + ']/';
 							
 			// generate folder if it does not exist
-			if( !fs.existsSync(albumpath) ) {
-				fs.mkdir( albumpath );
-			}
-			
+            try {
+    			fs.mkdirSync( albumpath, 0777, true );
+            } catch (err) {
+                console.log("mkdir is fail: " + err);
+            }
+
 			// generate the filepath
 			var filepath = albumpath + track.artist[0].name.replace(/\//g, ' - ') + ' - ' + track.name.replace(/\//g, ' - ') + '.mp3';
 	
